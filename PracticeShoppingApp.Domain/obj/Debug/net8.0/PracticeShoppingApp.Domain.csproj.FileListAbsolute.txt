@@ -1,0 +1,11 @@
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\bin\Debug\net8.0\PracticeShoppingApp.Domain.deps.json
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\bin\Debug\net8.0\PracticeShoppingApp.Domain.dll
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\bin\Debug\net8.0\PracticeShoppingApp.Domain.pdb
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\obj\Debug\net8.0\PracticeShoppingApp.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\obj\Debug\net8.0\PracticeShoppingApp.Domain.AssemblyInfoInputs.cache
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\obj\Debug\net8.0\PracticeShoppingApp.Domain.AssemblyInfo.cs
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\obj\Debug\net8.0\PracticeShoppingApp.Domain.csproj.CoreCompileInputs.cache
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\obj\Debug\net8.0\PracticeShoppingApp.Domain.dll
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\obj\Debug\net8.0\refint\PracticeShoppingApp.Domain.dll
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\obj\Debug\net8.0\PracticeShoppingApp.Domain.pdb
+C:\Users\ButterBean\source\repos\PracticeShoppingApp\PracticeShoppingApp.Domain\obj\Debug\net8.0\ref\PracticeShoppingApp.Domain.dll

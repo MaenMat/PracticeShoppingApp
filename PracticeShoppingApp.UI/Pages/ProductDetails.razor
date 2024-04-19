@@ -1,0 +1,160 @@
+﻿@page "/productdetails"
+@page "/productdetails/{productid}"
+
+@using PracticeShoppingApp.UI.Services.Contracts
+@using PracticeShoppingApp.UI.ViewModels
+@using System.Collections.ObjectModel
+
+<h1 class="page-title">Details for @ProductDetailsViewModel.Name</h1>
+
+@Message
+
+<EditForm Model="@ProductDetailsViewModel" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary></ValidationSummary>
+
+    <div class="row mb-3">
+        <label for="name" class="col-sm-3 form-label">Product name: </label>
+        <div class="col-sm-8">
+            <InputText id="name" class="form-control" @bind-Value="@ProductDetailsViewModel.Name" placeholder="Enter Product name"></InputText>
+            <ValidationMessage For="@(() => ProductDetailsViewModel.Name)" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label for="price" class="col-sm-3 form-label">Product price: </label>
+        <div class="col-sm-8">
+            <InputNumber id="price" class="form-control" @bind-Value="@ProductDetailsViewModel.Price" placeholder="Enter price"></InputNumber>
+            <ValidationMessage For="@(() => ProductDetailsViewModel.Price)" />
+        </div>
+    </div>
+
+
+    <div class="row mb-3">
+        <label for="description" class="col-sm-3 form-label">Description: </label>
+        <div class="col-sm-8">
+            <InputTextArea id="description" class="form-control" @bind-Value="@ProductDetailsViewModel.Description" placeholder="Enter description"></InputTextArea>
+            <ValidationMessage For="@(() => ProductDetailsViewModel.Description)" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label for="imageurl" class="col-sm-3 form-label">Image: </label>
+        <div class="col-sm-8">
+            <InputText id="imageurl" class="form-control" @bind-Value="@ProductDetailsViewModel.ImageUrl" placeholder="Enter image URL"></InputText>
+            <ValidationMessage For="@(() => ProductDetailsViewModel.ImageUrl)" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label for="category" class="col-sm-3 form-label">Category: </label>
+        <div class="col-sm-8">
+            <InputSelect id="category" class="form-control" @bind-Value="@SelectedCategoryId">
+                @foreach (var category in Categories)
+                {
+                    <option value="@category.CategoryId">@category.Name</option>
+                }
+            </InputSelect>
+        </div>
+    </div>
+
+    <button type="submit" class="submit-button">Save Product</button>
+
+</EditForm>
+
+@if (SelectedProductId != Guid.Empty)
+{
+    <p>
+        <button @onclick="DeleteProduct" class="delete-button mt-3">Delete Product</button>
+    </p>
+}
+<br />
+<p class="back-to-catalog mt-3"><img src="img/back-arrow.svg" /><a @onclick="@NavigateToOverview">Back to overview</a></p>
+
+@code {
+   
+    [Inject]
+    public IProductService ProductService { get; set; }
+
+    [Inject]
+    public ICategoryService CategoryService { get; set; }
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    public ProductDetailsViewModel ProductDetailsViewModel { get; set; } = new();
+
+    public ObservableCollection<CategoryViewModel> Categories { get; set; } = new ObservableCollection<CategoryViewModel>();
+
+    public string Message { get; set; }
+
+    public string SelectedCategoryId { get; set; }
+
+    [Parameter]
+    public string ProductId { get; set; }
+    private Guid SelectedProductId = Guid.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var list = await CategoryService.GetAll();
+
+        Categories = new ObservableCollection<CategoryViewModel>(list);
+        SelectedCategoryId = Categories.FirstOrDefault().CategoryId.ToString();
+
+        if (Guid.TryParse(ProductId, out SelectedProductId))
+        {
+            ProductDetailsViewModel = await ProductService.GetById(SelectedProductId);
+            SelectedCategoryId = ProductDetailsViewModel.CategoryId.ToString();
+        }
+    }
+
+    protected async Task HandleValidSubmit()
+    {
+        ProductDetailsViewModel.CategoryId = Guid.Parse(SelectedCategoryId);
+        object response; // Using object as the common return type
+
+        if (SelectedProductId == Guid.Empty)
+        {
+            Guid? newProductId = await ProductService.CreateProduct(ProductDetailsViewModel);
+            response = newProductId;
+        }
+        else
+        {
+            bool updateSuccess = await ProductService.UpdateProduct(ProductDetailsViewModel);
+            response = updateSuccess;
+        }
+
+        if (response != null)
+        {
+            if (response is Guid newId && newId != Guid.Empty)
+            {
+                // Product created successfully, handle the new product ID if needed
+                NavigationManager.NavigateTo("/productoverview");
+            }
+            else if (response is bool updateSuccess && updateSuccess)
+            {
+                // Product updated successfully
+                NavigationManager.NavigateTo("/productoverview");
+            }
+            else if (response is string errorMessage)
+            {
+                Message = errorMessage;
+            }
+        }
+    }
+
+
+    protected async Task DeleteProduct()
+    {
+       bool response = await ProductService.DeleteProduct(SelectedProductId);
+        if (response == true)
+        {
+            NavigationManager.NavigateTo("/productoverview");
+        } 
+    }
+
+    protected void NavigateToOverview()
+    {
+        NavigationManager.NavigateTo("/productoverview");
+    }
+}

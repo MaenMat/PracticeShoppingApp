@@ -1,0 +1,74 @@
+﻿@page "/categoryoverview"
+
+@using PracticeShoppingApp.UI.Services.Contracts
+@using PracticeShoppingApp.UI.ViewModels
+@using Microsoft.AspNetCore.Components
+@using System.Collections.Generic
+@using System.Threading.Tasks
+
+<h3>Product Category Overview</h3>
+
+@if (Categories == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Category name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in Categories)
+            {
+                <tr>
+                    <td>@category.Name</td>
+                </tr>
+                <tr>
+                    <td>
+                        <table class="table nested-table">
+                            <thead>
+                                <tr>
+                                    <th>Product name</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ev in category.Products)
+                                {
+                                    <tr>
+                                        <td>@ev.Name</td>
+                                        <td>@ev.Price</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Inject]
+    public ICategoryService CategoryService { get; set; }
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+    public ICollection<CategoryProductViewModel> Categories { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Categories = await CategoryService.GetAllCategoriesWithProducts();
+        }
+        catch (Exception ex)
+        {
+            // Handle the exception, such as displaying an error message
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+}

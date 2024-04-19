@@ -1,0 +1,61 @@
+﻿@page "/addcategory"
+@using Microsoft.AspNetCore.Authorization
+@using PracticeShoppingApp.UI.Services.Contracts
+@using PracticeShoppingApp.UI.ViewModels
+@using Microsoft.AspNetCore.Components.Authorization
+<h3 class="mb-5">New category</h3>
+@Message
+<CascadingAuthenticationState>
+<AuthorizeView Roles="admin">
+    <Authorized>
+        <EditForm Context="NoContext" Model="@CategoryViewModel" OnValidSubmit="@HandleValidSubmit">
+       <DataAnnotationsValidator />
+            <ValidationSummary></ValidationSummary>
+
+            <div class="row mb-3 ms-2">
+                <label for="name" class="col-sm-3 form-label">Category name:</label>
+                <div class="col-sm-5">
+                    <InputText id="name" class="form-control" @bind-Value="@CategoryViewModel.Name" placeholder="Enter category name"></InputText>
+                    <ValidationMessage For="@(() => CategoryViewModel.Name)" />
+                </div>
+            </div>
+            </EditForm> 
+            </Authorized>
+            <NotAuthorized>
+                not auth
+            </NotAuthorized>
+</AuthorizeView>
+</CascadingAuthenticationState>
+            <button type="submit" class="submit-button mt-3">Save category</button>
+@code {
+
+    [Inject]
+    public ICategoryService CategoryService { get; set; }
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    public CategoryViewModel CategoryViewModel { get; set; }
+     
+    public string Message { get; set; }
+
+    protected override void OnInitialized()
+    {
+        CategoryViewModel = new CategoryViewModel();
+    }
+
+    protected async Task HandleValidSubmit()
+    {
+        try
+        {
+            var newCategoryId = await CategoryService.CreateCategory(CategoryViewModel);
+            NavigationManager.NavigateTo("/categoryoverview");
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+
+    }
+}
+

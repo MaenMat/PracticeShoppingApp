@@ -1,0 +1,120 @@
+﻿@page "/placeorder"
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using PracticeShoppingApp.UI.Services.Contracts
+@using PracticeShoppingApp.UI.ViewModels
+@using PracticeShoppingApp.UI.Services
+@using System.Security.Claims
+
+
+<EditForm Model="@PlaceOrderViewModel" OnValidSubmit="@HandleValidSubmit">
+  <DataAnnotationsValidator />
+  <ValidationSummary></ValidationSummary>
+  <div class="row mb-3">
+    <label for="selectedProductId" class="col-sm-3 form-label">Product: </label>
+    <div class="col-sm-8">
+            <InputSelect id="selectedProductId" @bind-Value="PlaceOrderViewModel.ProductId" class="form-control" @bind-Value:after="OnProductSelectionChanged">
+        <option value="">-- Select Product --</option>
+        @foreach (var product in Products)
+        {
+          <option value="@product.ProdId">@product.Name</option>
+        }
+      </InputSelect>
+            <ValidationMessage For="@(() => PlaceOrderViewModel.ProductId)" />
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <label for="price" class="col-sm-3 form-label">Product price: </label>
+    <div class="col-sm-8">
+      <InputNumber id="price" class="form-control" @bind-Value="@ProductDetailsViewModel.Price" placeholder="Enter price" disabled="true" />
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <label for="quantity" class="col-sm-3 form-label">Quantity: </label>
+    <div class="col-sm-8">
+            <InputNumber id="quantity" class="form-control" @bind-Value="@PlaceOrderViewModel.Quantity" @bind-Value:after="OnQuantityChanged" placeholder="Enter The Desired Quantity">
+      </InputNumber>
+      <ValidationMessage For="@(() => PlaceOrderViewModel.Quantity)" />
+    </div>
+  </div>
+
+    <div class="row mb-3">
+        <label for="totalPrice" class="col-sm-3 form-label">Total Price: </label>
+        <div class="col-sm-8">
+            <p id="totalPrice" class="form-control-plaintext">@TotalPrice</p>
+        </div>
+    </div>
+
+  @Message
+    <button type="submit" class="submit-button" >Confirm Order</button>
+
+</EditForm>
+
+<br />
+<p class="back-to-catalog mt-3"><img src="img/back-arrow.svg" /><a @onclick="@NavigateToOverview">Back to overview</a></p>
+
+@code {
+    [Inject]
+    public IProductService ProductService { get; set; }
+
+    [Inject]
+    public IOrderService OrderService { get; set; }
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    public PlaceOrderViewModel PlaceOrderViewModel { get; set; } = new();
+
+    public ProductDetailsViewModel ProductDetailsViewModel { get; set; } = new();
+
+    public IEnumerable<ProductListViewModel> Products { get; set; } = new List<ProductListViewModel>();
+
+    public decimal? TotalPrice { get; set; }
+
+    public string Message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Products = await ProductService.GetAll();
+    }
+
+    protected async Task HandleValidSubmit()
+    {
+        var response = await OrderService.PlaceOrder(PlaceOrderViewModel);
+        if (response == true)
+        {
+            NavigateToOverview();
+        }
+        else
+        {
+            Message = "Something Gone Wrong, Try Again";
+        }
+    }
+
+    protected void NavigateToOverview()
+    {
+        NavigationManager.NavigateTo("/orderoverview");
+    }
+
+    protected async Task OnProductSelectionChanged()
+    {
+        if (PlaceOrderViewModel.ProductId != Guid.Empty)
+        {
+            ProductDetailsViewModel = await ProductService.GetById(PlaceOrderViewModel.ProductId);
+        }
+        else
+        {
+            ProductDetailsViewModel.Price = 0; 
+        }
+    }
+
+    protected async Task OnQuantityChanged()
+    {
+        if (ProductDetailsViewModel.Price != 0 || PlaceOrderViewModel.Quantity != 0)
+        {
+            TotalPrice = ProductDetailsViewModel.Price * PlaceOrderViewModel.Quantity;
+        }
+    }
+}

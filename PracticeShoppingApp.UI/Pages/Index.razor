@@ -1,0 +1,53 @@
+﻿@page "/"
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using PracticeShoppingApp.UI.Auth
+@using PracticeShoppingApp.UI.Services.Contracts
+
+<h1 class="page-title">Welcome to my Practice Shopping App!</h1>
+<br />
+<h4>this is the second time i build this app, hope things go well this time!</h4>
+
+<br />
+<CascadingAuthenticationState>
+<AuthorizeView>
+    <Authorized>
+        <button @onclick="Logout">Logout</button>
+    </Authorized>
+    <NotAuthorized>
+        <button @onclick="NavigateToLogin">Click here to log in</button>
+        <br />
+        <button @onclick="NavigateToRegister">Click here to register</button>
+    </NotAuthorized>
+</AuthorizeView>
+</CascadingAuthenticationState>
+@code {
+    [Inject]
+    private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    public IAuthenticationService AuthenticationService { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).GetAuthenticationStateAsync();
+    }
+
+    protected void NavigateToLogin()
+    {
+        NavigationManager.NavigateTo("login");
+    }
+
+    protected void NavigateToRegister()
+    {
+        NavigationManager.NavigateTo("register");
+    }
+
+    protected async void Logout()
+    {
+        await AuthenticationService.Logout();
+    }
+}

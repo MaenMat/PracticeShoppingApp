@@ -1,0 +1,121 @@
+﻿@page "/orderoverview"
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using PracticeShoppingApp.UI.Services.Contracts
+@using PracticeShoppingApp.UI.ViewModels
+@using PracticeShoppingApp.App.Components
+
+<h3 class="mb-5">Orders List</h3>
+
+<div class="row">
+    <div class="col-2">
+        <span>Select month</span>
+        <select class="form-select" @bind="@SelectedMonth">
+            <option value=""></option>
+            @foreach (var month in MonthList)
+            {
+                <option value="@month"> @month </option>
+            }
+        </select>
+    </div>
+    <div class="col-2">
+        <span>Select year</span>
+        <select class="form-select" @bind="@SelectedYear">
+            <option value=""></option>
+            @foreach (var year in YearList)
+            {
+                <option value="@year"> @year</option>
+            }
+        </select>
+    </div>
+</div>
+
+
+<button @onclick="GetSales" class="mt-4">Get Sales</button>
+<br />
+
+@if (ordersList == null)
+{
+    <p><em>No data</em></p>
+}
+else
+{
+    <table class="ticket-sales-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in ordersList)
+            {
+                <tr>
+                    <td>@order.OrderPlaced</td>
+                    <td>@order.OrderTotal</td>
+                    <td>
+                        <a @onclick="(() => DeleteOrder(order.OrderId))" class="btn btn-outline-danger">
+                            <i class="fa-solid fa-pen-to-square"></i> Delete Order
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <PracticeShoppingApp.UI.Components.Pager PageIndex="@paginatedList.PageIndex" TotalPages=@paginatedList.TotalPages OnClick="PageIndexChanged"
+           HasNextPage=@paginatedList.HasNextPage HasPreviousPage=@paginatedList.HasPreviousPage>
+    </PracticeShoppingApp.UI.Components.Pager>
+}
+
+
+@code {
+    [Inject]
+    public IOrderService OrderService { get; set; }
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    public string SelectedMonth { get; set; }
+    public string SelectedYear { get; set; }
+
+    public List<string> MonthList { get; set; } = new List<string>() { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" };
+    public List<string> YearList { get; set; } = new List<string>() { "2020", "2021", "2022", "2023", "2024" };
+
+    private int? pageNumber = 1;
+
+    private PaginatedList<OrdersForMonthListViewModel> paginatedList
+        = new PaginatedList<OrdersForMonthListViewModel>();
+
+    private IEnumerable<OrdersForMonthListViewModel> ordersList;
+
+    protected async Task GetSales()
+    {
+        DateTime dt = new DateTime(int.Parse(SelectedYear), int.Parse(SelectedMonth), 1);
+
+        var orders = await OrderService.GetPagedOrderForMonth(dt, pageNumber.Value, 5);
+        paginatedList = new PaginatedList<OrdersForMonthListViewModel>(orders.OrdersForMonth.ToList(), orders.Count, pageNumber.Value, 5);
+        ordersList = paginatedList.Items;
+
+        StateHasChanged();
+    }
+
+    public async void PageIndexChanged(int newPageNumber)
+    {
+        if (newPageNumber < 1 || newPageNumber > paginatedList.TotalPages)
+        {
+            return;
+        }
+        pageNumber = newPageNumber;
+        await GetSales();
+        StateHasChanged();
+    }
+    protected async Task DeleteOrder(Guid id)
+    {
+        bool response = await OrderService.DeleteOrder(id);
+        if (response == true)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, true);
+        }
+    }
+}

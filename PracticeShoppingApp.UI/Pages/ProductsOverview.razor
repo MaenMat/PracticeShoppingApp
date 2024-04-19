@@ -1,0 +1,83 @@
+﻿@page "/productoverview"
+
+@using PracticeShoppingApp.Application.Features.Products.Dtos
+@using PracticeShoppingApp.UI.Services.Contracts
+@using PracticeShoppingApp.UI.ViewModels
+@using Microsoft.AspNetCore.Components.Authorization
+<h3 class="mb-4">Product Overview</h3>
+
+<div class="d-flex justify-content-end my-4">
+    <button @onclick="AddNewProduct" class="btn btn-primary">Add Product</button>
+</div>
+
+@if (Products == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+<CascadingAuthenticationState>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="bg-primary text-light">
+                <tr>
+                    <th></th>
+                    <th>Product name</th>
+                    <th>Product price</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var prd in Products)
+                {
+                    <tr>
+                        <td class="event-thumbnail"><img src="@prd.ImageUrl" alt="Product Image" style="max-width: 100px;" /></td>
+                        <td class="event-name">@prd.Name </td>
+                        <td class="event-price">$@prd.Price </td>
+                            <AuthorizeView Roles="admin">
+                                <Authorized>
+                                    <td>
+                                        <a href="@($"productdetails/{prd.ProdId}")" class="btn btn-outline-primary">
+                                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                                        </a>
+                                    </td>
+                                </Authorized>
+                            </AuthorizeView>
+                            <AuthorizeView Roles="user">
+                                <Authorized>
+                        <td>
+                            <a href="@($"placeorder/{prd.ProdId}")" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-pen-to-square"></i> Place Order
+                            </a>
+                        </td>
+                            </Authorized>
+                        </AuthorizeView>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    </CascadingAuthenticationState>
+}
+
+@code {
+
+    [Inject]
+    public IProductService ProductService { get; set; }
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    public IEnumerable<ProductListViewModel> Products { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+       Products = await ProductService.GetAll();
+    }
+
+    protected void AddNewProduct()
+    {
+        NavigationManager.NavigateTo("/productdetails");
+    }
+
+}
